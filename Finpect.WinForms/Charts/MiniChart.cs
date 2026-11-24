@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
@@ -12,9 +13,13 @@ namespace Finpect.WinForms.Charts
     internal sealed class MiniChart : Control
     {
         private double[] values = Array.Empty<double>();
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public Color ChartColor { get; set; } = Ui.Green;
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public bool ShowAxis { get; set; } = true;
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public bool ShowFill { get; set; } = true;
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public string[] DateLabels { get; set; } = { "24 Ağu", "7 Eyl", "21 Eyl", "5 Eki", "19 Eki", "2 Kas", "16 Kas" };
 
         public MiniChart()
