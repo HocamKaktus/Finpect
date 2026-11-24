@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Finpect.Core/Finpect.Core.csproj" />
+  <Project Path="Finpect.Tests/Finpect.Tests.csproj" />
+</Solution>
