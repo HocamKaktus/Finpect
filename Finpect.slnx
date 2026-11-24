@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="Finpect.Core/Finpect.Core.csproj" />
   <Project Path="Finpect.Tests/Finpect.Tests.csproj" />
+  <Project Path="Finpect.WinForms/Finpect.WinForms.csproj" />
 </Solution>
