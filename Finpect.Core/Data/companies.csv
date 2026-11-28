@@ -1,0 +1,8 @@
+Name,Code,Sector,Price,EarningsPerShare,EarningsGrowthPercent,RevenueGrowthPercent,DebtToEquity,ReturnOnEquityPercent,NetMarginPercent,CurrentRatio,BookValuePerShare,PositiveFreeCashFlow,ProfitableYears,DividendYears
+Arven Yazılım,ORNEK-ARV,Teknoloji,120,6,22,18,0.30,21,19,2.5,42,true,6,0
+Mera Sanayi,ORNEK-MER,Sanayi,75,5,12,8,0.40,16,14,2.2,55,true,9,7
+Kuzey Enerji,ORNEK-KZE,Enerji,90,3,8,13,1.30,12,6,1.1,35,false,3,0
+Duru Tüketim,ORNEK-DUR,Tüketim,60,4,10,11,0.45,18,12,2.1,40,true,7,6
+Nova Robotik,ORNEK-NVR,Teknoloji,230,4,38,45,0.65,17,10,1.8,50,false,2,0
+Liman Lojistik,ORNEK-LML,Lojistik,40,4,4,3,0.20,13,11,2.4,35,true,10,8
+Temel Biyotek,ORNEK-TMB,Sağlık,55,-2,0,22,0.80,-9,-8,1.9,18,false,0,0
