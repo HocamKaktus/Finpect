@@ -51,6 +51,7 @@ namespace Finpect.WinForms.Views
             BuildScoreArea();
             BuildDetails();
 
+            // ComboBox nesnelerini şirket ve profil listelerine bağlayarak seçimleri hazırlarız.
             companyBox.DataSource = companies;
             companyBox.DisplayMember = nameof(Company.DisplayName);
             profileBox.DataSource = service.Profiles;
@@ -178,6 +179,7 @@ namespace Finpect.WinForms.Views
             lower.Controls.Add(right, 1, 0);
         }
 
+        // Seçilen şirketi yalnızca seçili yatırımcı profiliyle analiz eder.
         private void ShowAnalysis()
         {
             try
@@ -189,6 +191,7 @@ namespace Finpect.WinForms.Views
                 ProfileAnalysis selected = service.Analyze(company, selectedProfile);
                 UpdateScores(company);
                 ShowCompany(company);
+                // Önce eski satırları temizler, sonra her kriterin sonucunu tabloya ekleriz.
                 criteriaGrid.Rows.Clear();
                 foreach (CriterionResult criterion in selected.Criteria)
                 {
@@ -210,6 +213,7 @@ namespace Finpect.WinForms.Views
             }
         }
 
+        // Aynı şirket için üç profil sonucunu karşılaştırma tablosuna yazar.
         private void ShowComparison()
         {
             try
@@ -242,6 +246,7 @@ namespace Finpect.WinForms.Views
             }
         }
 
+        // Üstteki küçük puan göstergelerini analiz servisi sonucuna göre yeniler.
         private void UpdateScores(Company company)
         {
             foreach (ProfileAnalysis result in service.Compare(company))
@@ -260,6 +265,7 @@ namespace Finpect.WinForms.Views
                 + "   |   F/K: " + pe + "   |   PEG: " + peg;
         }
 
+        // Tek profilin adını, 100 üzerinden puanını ve doluluk çubuğunu gösteren kontrol.
         private sealed class ScoreTile : UserControl
         {
             private readonly Label score;

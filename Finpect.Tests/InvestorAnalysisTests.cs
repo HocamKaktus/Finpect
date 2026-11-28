@@ -7,6 +7,7 @@ using Xunit;
 
 namespace Finpect.Tests;
 
+// xUnit testleri: profil sayısı, puanlama, eksik veri ve sıralama davranışını doğrular.
 public class InvestorAnalysisTests
 {
     private readonly InvestorAnalysisService _analyzer = new();
@@ -24,6 +25,7 @@ public class InvestorAnalysisTests
     }
 
     [Fact]
+    // EPS negatifse hesaplanamayan F/K ve PEG'in yanlışlıkla "uygun" sayılmamasını kontrol eder.
     public void MissingFinancialMultiplesAreNotTreatedAsPassing()
     {
         Company company = DemoCompanies.GetAll().Single(c => c.Code == "ORNEK-TMB");
@@ -56,6 +58,7 @@ public class InvestorAnalysisTests
     }
 
     [Fact]
+    // Karşılaştırma ekranında en yüksek uyum puanı en üstte görünmelidir.
     public void ComparisonIsOrderedByScoreDescending()
     {
         var analyses = _analyzer.Compare(DemoCompanies.GetAll().First());

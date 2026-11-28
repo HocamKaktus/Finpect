@@ -8,6 +8,7 @@ namespace Finpect.Core.Profiles
     {
         public abstract string Name { get; }
         public abstract string Description { get; }
+        // Her yatırımcı profili kendi Evaluate metodunu override ederek kurallarını belirler.
         public abstract List<CriterionResult> Evaluate(Company company);
 
         // Kod tekrarını azaltmak için ortak yardımcı metot (protected).
@@ -16,6 +17,7 @@ namespace Finpect.Core.Profiles
             return new CriterionResult(title, passed, detail);
         }
 
+        // Finansal veri yoksa kriteri yanlışlıkla başarısız veya başarılı saymayız.
         protected CriterionResult Unknown(string title, string detail)
         {
             return new CriterionResult(title, null, detail);

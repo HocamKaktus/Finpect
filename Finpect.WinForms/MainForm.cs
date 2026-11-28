@@ -81,6 +81,7 @@ namespace Finpect.WinForms
             root.Controls.Add(footer, 0, 2);
         }
 
+        // Menüde açılacak ekranları adlarıyla eşleştiririz; diğer modüller sonradan değiştirilebilir.
         private void RegisterPages()
         {
             modulePages.Add("Ana Panel", new DashboardPage());
@@ -111,6 +112,7 @@ namespace Finpect.WinForms
             old.Dispose();
         }
 
+        // Menü butonuna basılınca aktif butonun rengi ve ekrandaki UserControl değişir.
         private void Navigate(string menuName)
         {
             if (!modulePages.TryGetValue(menuName, out Control? page)) return;

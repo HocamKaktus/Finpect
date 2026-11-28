@@ -20,6 +20,7 @@ namespace Finpect.Core.Profiles
                 c.EarningsGrowthPercent >= 10 && c.EarningsGrowthPercent <= 30,
                 "Kâr büyümesi: %" + c.EarningsGrowthPercent.ToString("0.##")));
 
+            // PEG, F/K oranını kâr büyümesiyle karşılaştırır. Hesaplanamıyorsa kriter boş kalır.
             if (c.PegRatio.HasValue)
                 results.Add(Rule("PEG <= 1,5",
                     c.PegRatio.Value <= 1.5,

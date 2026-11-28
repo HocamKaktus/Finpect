@@ -42,6 +42,7 @@ namespace Finpect.Core.Models
             }
         }
 
+        // PD/DD = hisse fiyatı / hisse başına defter değeri; payda pozitif olmalıdır.
         public double? PriceToBook
         {
             get

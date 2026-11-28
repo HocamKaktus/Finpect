@@ -2,6 +2,7 @@ using System.Collections.Generic;
 
 namespace Finpect.Core.Models
 {
+    // Tek bir yatırımcı profili için puan, yorum ve kriter sonuçlarını birlikte taşır.
     public class ProfileAnalysis
     {
         public string ProfileName { get; }

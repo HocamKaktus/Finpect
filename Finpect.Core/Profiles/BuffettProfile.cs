@@ -32,6 +32,7 @@ namespace Finpect.Core.Profiles
                 c.PositiveFreeCashFlow,
                 "Serbest nakit akışı: " + (c.PositiveFreeCashFlow ? "Pozitif" : "Pozitif değil")));
 
+            // EPS pozitif değilse F/K hesaplanamaz; bu koşul "veri yok" olur.
             if (c.PriceToEarnings.HasValue)
                 results.Add(Rule("F/K <= 25",
                     c.PriceToEarnings.Value <= 25,

@@ -24,7 +24,9 @@ namespace Finpect.Core.Services
             if (company == null) throw new ArgumentNullException(nameof(company));
             if (profile == null) throw new ArgumentNullException(nameof(profile));
 
+            // Polimorfizm: seçilen profilin (Buffett/Lynch/Graham) kendi Evaluate metodu çalışır.
             List<CriterionResult> criteria = profile.Evaluate(company);
+            // bool? türündeki null, ölçümün hesaplanamadığını gösterir.
             int usableCount = criteria.Count(x => x.Passed.HasValue);
             int passedCount = criteria.Count(x => x.Passed == true);
 
@@ -34,6 +36,7 @@ namespace Finpect.Core.Services
                 : (int)Math.Round(passedCount * 100.0 / usableCount,
                     MidpointRounding.AwayFromZero);
 
+            // Bu yorum bir al/sat tavsiyesi değil, yalnızca örnek kriterlerin uyum özetidir.
             string comment;
             if (usableCount == 0)
                 comment = "Değerlendirme için yeterli veri yok.";
@@ -61,6 +64,7 @@ namespace Finpect.Core.Services
             return Analyze(company, profile);
         }
 
+        // Aynı şirketi üç profil için ayrı ayrı değerlendirip yüksek puandan düşüğe sıralar.
         public List<ProfileAnalysis> Compare(Company company)
         {
             if (company == null) throw new ArgumentNullException(nameof(company));
