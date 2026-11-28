@@ -36,6 +36,7 @@ namespace Finpect.WinForms.Charts
             Invalidate();
         }
 
+        // WinForms Paint olayında veri noktalarını ekrandaki koordinatlara çevirip çizeriz.
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);

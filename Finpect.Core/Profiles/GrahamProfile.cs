@@ -16,6 +16,7 @@ namespace Finpect.Core.Profiles
             if (c == null) throw new ArgumentNullException(nameof(c));
             List<CriterionResult> results = new List<CriterionResult>();
 
+            // Graham örneğinde önce değerleme oranlarını, sonra bilanço güvenliğini kontrol ediyoruz.
             if (c.PriceToEarnings.HasValue)
                 results.Add(Rule("F/K <= 15",
                     c.PriceToEarnings.Value <= 15,

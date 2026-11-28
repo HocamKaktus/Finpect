@@ -29,6 +29,7 @@ namespace Finpect.WinForms.Charts
             BackColor = Ui.Background;
         }
 
+        // Her varlık yüzdesi 360 derecelik çemberde bir dilime dönüştürülür.
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
