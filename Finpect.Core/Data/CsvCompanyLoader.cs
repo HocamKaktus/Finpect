@@ -1,258 +1,60 @@
-using System.Diagnostics.CodeAnalysis;
+using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
+using System.IO;
 using Finpect.Core.Models;
 
 namespace Finpect.Core.Data
 {
-    // CSV'den okunan şirketleri ve atlanan satırların nedenlerini birlikte tutar.
-    public class CsvLoadResult
-    {
-        public List<Company> Companies { get; } = new List<Company>();
-        public List<string> Warnings { get; } = new List<string>();
-    }
-
-    // Şirket verilerini CSV dosyasından okuyup Company nesnelerine dönüştürür.
-    // Beklenen biçim: ilk satır başlık, ayraç virgül, ondalık ayracı nokta (örn. 2.5).
-    // Sütunlar başlık adına göre bulunur; sıraları önemli değildir.
+    // CSV dosyasındaki şirket verilerini okuyup Company listesine çevirir
     public static class CsvCompanyLoader
     {
-        // Bu sütunlar olmadan şirket anlamlı değerlendirilemez.
-        private static readonly string[] RequiredColumns =
+        public static List<Company> Load(string path)
         {
-            "Name", "Code", "Price", "EarningsPerShare"
-        };
+            List<Company> companies = new List<Company>();
+            string[] lines = File.ReadAllLines(path);
 
-        public static CsvLoadResult LoadFromFile(string path)
-        {
-            if (!File.Exists(path))
-                throw new FileNotFoundException("CSV dosyası bulunamadı.", path);
-
-            using var reader = new StreamReader(path, Encoding.UTF8);
-            return Parse(reader);
-        }
-
-        public static CsvLoadResult Parse(TextReader reader)
-        {
-            var result = new CsvLoadResult();
-
-            string? headerLine = reader.ReadLine();
-            if (string.IsNullOrWhiteSpace(headerLine))
+            // ilk satır başlık olduğu için 1'den başlıyor
+            for (int i = 1; i < lines.Length; i++)
             {
-                result.Warnings.Add("CSV dosyası boş.");
-                return result;
-            }
+                string line = lines[i];
 
-            // Başlık adı -> sütun sırası (büyük/küçük harf duyarsız).
-            var columns = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-            string[] headers = SplitLine(headerLine);
-            for (int i = 0; i < headers.Length; i++)
-            {
-                string header = headers[i].Trim().TrimStart('﻿');
-                if (header.Length > 0 && !columns.ContainsKey(header))
-                    columns[header] = i;
-            }
-
-            foreach (string required in RequiredColumns)
-            {
-                if (!columns.ContainsKey(required))
-                    throw new InvalidDataException("CSV'de zorunlu sütun eksik: " + required);
-            }
-
-            var seenCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            int lineNumber = 1;
-            string? line;
-
-            while ((line = reader.ReadLine()) != null)
-            {
-                lineNumber++;
-                if (string.IsNullOrWhiteSpace(line)) continue;
-
-                string[] fields = SplitLine(line);
-
-                if (!TryCreateCompany(fields, columns, out Company? company, out string error))
-                {
-                    result.Warnings.Add("Satır " + lineNumber + " atlandı: " + error);
+                // boş satırları atla
+                if (line.Trim() == "")
                     continue;
-                }
 
-                if (!seenCodes.Add(company.Code))
-                {
-                    result.Warnings.Add("Satır " + lineNumber + " atlandı: " + company.Code + " kodu tekrar ediyor.");
+                string[] parts = line.Split(',');
+
+                // eksik sütunlu satırları atla
+                if (parts.Length < 15)
                     continue;
-                }
 
-                result.Companies.Add(company);
+                Company company = new Company();
+                company.Name = parts[0];
+                company.Code = parts[1];
+                company.Sector = parts[2];
+                company.Price = ToDouble(parts[3]);
+                company.EarningsPerShare = ToDouble(parts[4]);
+                company.EarningsGrowthPercent = ToDouble(parts[5]);
+                company.RevenueGrowthPercent = ToDouble(parts[6]);
+                company.DebtToEquity = ToDouble(parts[7]);
+                company.ReturnOnEquityPercent = ToDouble(parts[8]);
+                company.NetMarginPercent = ToDouble(parts[9]);
+                company.CurrentRatio = ToDouble(parts[10]);
+                company.BookValuePerShare = ToDouble(parts[11]);
+                company.PositiveFreeCashFlow = parts[12] == "true";
+                company.ProfitableYears = int.Parse(parts[13]);
+                company.DividendYears = int.Parse(parts[14]);
+
+                companies.Add(company);
             }
 
-            return result;
+            return companies;
         }
 
-        // Bir satırı Company nesnesine çevirir; veri hatalıysa nedenini döndürür.
-        private static bool TryCreateCompany(string[] fields, Dictionary<string, int> columns,
-            [NotNullWhen(true)] out Company? company, out string error)
+        // 0.30 gibi noktalı sayıları okumak için
+        private static double ToDouble(string text)
         {
-            company = null;
-            error = "";
-
-            string Get(string column)
-            {
-                if (!columns.TryGetValue(column, out int index) || index >= fields.Length) return "";
-                return fields[index].Trim();
-            }
-
-            string name = Get("Name");
-            string code = Get("Code");
-            if (name.Length == 0) { error = "Name boş."; return false; }
-            if (code.Length == 0) { error = "Code boş."; return false; }
-
-            if (!TryParseRequiredDouble(Get("Price"), out double price) || price <= 0)
-            {
-                error = "Price eksik, sayı değil veya sıfırdan küçük.";
-                return false;
-            }
-            if (!TryParseRequiredDouble(Get("EarningsPerShare"), out double eps))
-            {
-                error = "EarningsPerShare eksik veya sayı değil.";
-                return false;
-            }
-
-            var c = new Company
-            {
-                Name = name,
-                Code = code,
-                Sector = Get("Sector"),
-                Price = price,
-                EarningsPerShare = eps
-            };
-
-            // İsteğe bağlı sütunlar: boşsa 0/false kabul edilir, doluysa geçerli olmalıdır.
-            if (!TryOptionalDouble(Get("EarningsGrowthPercent"), v => c.EarningsGrowthPercent = v, "EarningsGrowthPercent", ref error)) return false;
-            if (!TryOptionalDouble(Get("RevenueGrowthPercent"), v => c.RevenueGrowthPercent = v, "RevenueGrowthPercent", ref error)) return false;
-            if (!TryOptionalDouble(Get("DebtToEquity"), v => c.DebtToEquity = v, "DebtToEquity", ref error)) return false;
-            if (!TryOptionalDouble(Get("ReturnOnEquityPercent"), v => c.ReturnOnEquityPercent = v, "ReturnOnEquityPercent", ref error)) return false;
-            if (!TryOptionalDouble(Get("NetMarginPercent"), v => c.NetMarginPercent = v, "NetMarginPercent", ref error)) return false;
-            if (!TryOptionalDouble(Get("CurrentRatio"), v => c.CurrentRatio = v, "CurrentRatio", ref error)) return false;
-            if (!TryOptionalDouble(Get("BookValuePerShare"), v => c.BookValuePerShare = v, "BookValuePerShare", ref error)) return false;
-
-            if (!TryParseBool(Get("PositiveFreeCashFlow"), out bool fcf))
-            {
-                error = "PositiveFreeCashFlow true/false olmalı.";
-                return false;
-            }
-            c.PositiveFreeCashFlow = fcf;
-
-            if (!TryParseOptionalInt(Get("ProfitableYears"), out int profitableYears))
-            {
-                error = "ProfitableYears tam sayı olmalı.";
-                return false;
-            }
-            c.ProfitableYears = profitableYears;
-
-            if (!TryParseOptionalInt(Get("DividendYears"), out int dividendYears))
-            {
-                error = "DividendYears tam sayı olmalı.";
-                return false;
-            }
-            c.DividendYears = dividendYears;
-
-            company = c;
-            return true;
-        }
-
-        private static bool TryParseRequiredDouble(string text, out double value)
-        {
-            return double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
-        }
-
-        private static bool TryOptionalDouble(string text, Action<double> assign, string column, ref string error)
-        {
-            if (text.Length == 0) { assign(0); return true; }
-            if (double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out double value))
-            {
-                assign(value);
-                return true;
-            }
-            error = column + " sayı değil: " + text;
-            return false;
-        }
-
-        private static bool TryParseOptionalInt(string text, out int value)
-        {
-            value = 0;
-            if (text.Length == 0) return true;
-            return int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out value) && value >= 0;
-        }
-
-        private static bool TryParseBool(string text, out bool value)
-        {
-            switch (text.ToLowerInvariant())
-            {
-                case "":
-                case "false":
-                case "0":
-                case "no":
-                case "hayır":
-                    value = false;
-                    return true;
-                case "true":
-                case "1":
-                case "yes":
-                case "evet":
-                    value = true;
-                    return true;
-                default:
-                    value = false;
-                    return false;
-            }
-        }
-
-        // Virgülle ayrılmış satırı böler; tırnak içindeki virgülleri ("Arven, A.Ş.") korur.
-        private static string[] SplitLine(string line)
-        {
-            var fields = new List<string>();
-            var current = new StringBuilder();
-            bool inQuotes = false;
-
-            for (int i = 0; i < line.Length; i++)
-            {
-                char ch = line[i];
-                if (inQuotes)
-                {
-                    if (ch == '"')
-                    {
-                        if (i + 1 < line.Length && line[i + 1] == '"')
-                        {
-                            current.Append('"');
-                            i++;
-                        }
-                        else
-                        {
-                            inQuotes = false;
-                        }
-                    }
-                    else
-                    {
-                        current.Append(ch);
-                    }
-                }
-                else if (ch == '"')
-                {
-                    inQuotes = true;
-                }
-                else if (ch == ',')
-                {
-                    fields.Add(current.ToString());
-                    current.Clear();
-                }
-                else
-                {
-                    current.Append(ch);
-                }
-            }
-
-            fields.Add(current.ToString());
-            return fields.ToArray();
+            return double.Parse(text, CultureInfo.InvariantCulture);
         }
     }
 }
